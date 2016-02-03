@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Not Found</title>
+</head>
+<body>
+<div style="border:1px solid #990000;padding-left:20px;margin:0 0 10px 0;">
+
+    <p>Code: <?php echo $exceptionObj->getCode(); ?></p>
+    <p>Message: <?php echo $exceptionObj->getMessage(); ?></p>
+    <p>Filename: <?php echo $exceptionObj->getFile(); ?></p>
+    <p>Line Number: <?php echo $exceptionObj->getLine(); ?></p>
+    <p>TraceAsString: <?php echo $exceptionObj->getTraceAsString();?></p>
+</div>
+</body>
+</html>
