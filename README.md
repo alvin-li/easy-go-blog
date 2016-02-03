@@ -1,1 +1,1 @@
-# easy-go-blog
+# easy php framework
