@@ -22,6 +22,7 @@ define('CORE_PATH', ROOT_PATH.'core/');				//核心类
 define('CONF_PRO_PATH', ROOT_PATH.'config/');       //线上配置文件路径
 define('CONF_DEV_PATH', ROOT_PATH.'config/dev/');   //开发配置文件路径
 define('VIEW_PATH', ROOT_PATH.'views/');            //视图层根目录
+define('LOGS_PATH', ROOT_PATH.'logs/');             //日志根目录
 
 //异常常量定义
 require_once CONF_PRO_PATH.'exception_constants.php';

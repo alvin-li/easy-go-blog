@@ -21,12 +21,13 @@ class Db
 	//debug
 	public $debug = false;
     //debug file resource
-    private $debugFileResource;
+    private $debugLogObject;
 
 	/**
 	 * __construct
 	 *
-	 * @desc 构造器
+	 * @param string $dbConfKey databases配置文件里的数组key
+	 * @param bool $debug 是否打开debug模式,默认关闭,打开后会记录执行的SQL语句
 	 * @access private
 	 * @return void
 	 */
@@ -40,8 +41,8 @@ class Db
 		}
         $this->debug = $debug;
         if (true===$this->debug) {
-            $this->debugFileResource = new Log(DB_DEBUG_FILE, 'd');
-            $this->debugFileResource->setCommonMsg(array('type'=>'sql_debug'));
+            $this->debugLogObject = new Log(DB_DEBUG_FILE, 'd');
+            $this->debugLogObject->setCommonMsg(array('type'=>'sql_debug'));
         }
 	}
 
@@ -58,7 +59,14 @@ class Db
             PDO::ATTR_TIMEOUT => $config['timeout'],
             PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'
         );
+		if (true===$this->debug) {
+			$startTime = microtime(true);
+		}
         $this->dbh = new PDO($dsn, $config['username'], $config['pwd'], $options);
+		if (true===$this->debug) {
+			$endTime = microtime(true);
+			$this->debugLogObject->debugLog(array('dsn'=>$dsn, 'use_time'=>($endTime-$startTime)));
+		}
 	}
 
 	/**
@@ -200,7 +208,7 @@ class Db
 	{
         try {
             if (true===$this->debug) {
-                $this->debugFileResource->debugLog(array('sql'=>$sql));
+				$startTime = microtime(true);
             }
             $statementObj = $this->dbh->prepare($sql);
             if (false===$statementObj) {
@@ -208,6 +216,10 @@ class Db
                 throw new \Exception($exceptionInfo[2], $exceptionInfo[1]);
             }
             $statementObj->execute();
+			if (true===$this->debug) {
+				$endTime = microtime(true);
+				$this->debugLogObject->debugLog(array('sql'=>$sql, 'use_time'=>($endTime-$startTime)));
+			}
         } catch (Exception $exc) {
             throw $exc;
         }
@@ -222,13 +234,17 @@ class Db
 	 */
 	private function exec($sql)
 	{
-        if (true===$this->debug) {
-            $this->debugFileResource->debugLog(array('sql'=>$sql));
-        }
+		if (true===$this->debug) {
+			$startTime = microtime(true);
+		}
 		$result = $this->dbh->exec($sql);
 		if (false===$result) {
 			$exceptionInfo = $this->dbh->errorInfo();
 			throw new Exception($exceptionInfo[2], $exceptionInfo[1]);
+		}
+		if (true===$this->debug) {
+			$endTime = microtime(true);
+			$this->debugLogObject->debugLog(array('sql'=>$sql, 'use_time'=>($endTime-$startTime)));
 		}
 		return $result;
 	}
@@ -243,8 +259,8 @@ class Db
 	public function __destruct()
 	{
 		$this->dbh = null;
-        if (is_resource($this->debugFileResource)) {
-            $this->debugFileResource->closeFile();
+        if (is_object($this->debugLogObject)) {
+            $this->debugLogObject->closeFile();
         }
 	}
 }

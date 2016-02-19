@@ -3,10 +3,11 @@
 namespace Core;
 
 /**
- * Description of Log
+ * 日志类
  *
  * @author lipengfei
  */
+
 class Log
 {
 
@@ -27,11 +28,11 @@ class Log
 	 * @param bool $roateByWhat 按什么切分，Y按年，m按月,d按天，默认false不切分
 	 * @param string $logPath	文件路径
 	 */
-	public function __construct($logFileName, $roateByWhat = FALSE, $logPath = '/tmp/')
+	public function __construct($logFileName, $roateByWhat = FALSE, $logPath = LOGS_PATH)
 	{
 		//create log path
 		if (!file_exists($logPath)) {
-			mkdir($logPath, 0777, true);
+			mkdir($logPath, 0644, true);
 		}
 
 		$this->logFileName = $logPath . $logFileName;
@@ -48,27 +49,58 @@ class Log
         $this->commonMsg = $commonMsg;
     }
 
+    /**
+     * 记录debug级别日志
+     * @param array $logArr 日志内容
+     * @return void
+     */
     public function debugLog($logArr)
     {
         $this->setLogLevel('DEBUG');
         $this->saveLogs($logArr);
     }
 
+    /**
+     * 记录info级别日志
+     * @param array $logArr 日志内容
+     * @return void
+     */
 	public function infoLog($logArr)
 	{
 		$this->setLogLevel('INFO');
         $this->saveLogs($logArr);
 	}
 
+    /**
+     * 记录warning级别日志
+     * @param array $logArr 日志内容
+     * @return void
+     */
     public function warningLog($logArr)
     {
         $this->setLogLevel('WARNING');
         $this->saveLogs($logArr);
     }
 
+    /**
+     * 记录error级别日志
+     * @param array $logArr 日志内容
+     * @return void
+     */
     public function errorLog($logArr)
     {
         $this->setLogLevel('ERROR');
+        $this->saveLogs($logArr);
+    }
+
+    /**
+     * 记录exception级别日志
+     * @param array $logArr 日志内容
+     * @return void
+     */
+    public function exceptionLog($logArr)
+    {
+        $this->setLogLevel('EXCEPTION');
         $this->saveLogs($logArr);
     }
 
@@ -87,23 +119,23 @@ class Log
 	 */
 	private function getRoateLogFileName($roateByWhat)
 	{
-		$result = '';
+		$result = '_';
 		switch ($roateByWhat) {
 			case 'Y':
-				$result .= '_' . date('Y') . '.log';
+				$result .= date('Y');
 				break;
 
 			case 'm':
-				$result .= '_' . date('Ym') . '.log';
+				$result .= date('Ym');
 				break;
 			case 'd':
-				$result .= '_' . date('Ymd') . '.log';
+				$result .= date('Ymd');
 				break;
 			default:
-				$result .= '.log';
+				$result = '';
 				break;
 		}
-        $this->logFileName .= $result;
+        $this->logFileName .= $result . '.log';
 	}
 
 	/**
@@ -113,9 +145,7 @@ class Log
 	 */
 	private function saveLogs($msg)
 	{
-		if (is_resource($this->fp)) {
-			fwrite($this->fp, $this->formatLogMessage($msg));
-		}
+        fwrite($this->fp, $this->formatLogMessage($msg));
 	}
 
 	/**
@@ -154,17 +184,14 @@ class Log
 	 * 写日志
 	 * @param string $logFileName 文件名称
 	 * @param array $msg 日志信息
-	 * @param string $roateByWhat 按什么切分，Y按年，m按月,d按天，默认false不切分
-	 * @param string $logPath
 	 * @return void
 	 */
 	public static function writeLog($logFileName, $msg)
 	{
 		$filePath = dirname($logFileName);
-		if (!file_exists($logFileName)) {
-			mkdir($logFileName, 0777, true);
+		if (!file_exists($filePath)) {
+			mkdir($filePath, 0644, true);
 		}
-		$logFile = $logPath . $logFileName;
 		$content = date('Y-m-d H:i:s') . ' ';
 		foreach ($msg as $key => $value) {
 			if (is_string($key)) {
@@ -174,7 +201,6 @@ class Log
 			}
 		}
 		$content .= "\n";
-		file_put_contents($logFile, $content, FILE_APPEND);
+		file_put_contents($logFileName, $content, FILE_APPEND);
 	}
-
 }
